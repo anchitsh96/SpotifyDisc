@@ -1,26 +1,40 @@
 # SpotifyDisc
 
-A floating Spotify mini-player for macOS: a small spinning vinyl disc with the current album art that expands on hover into a card with title, artist, art, prev / play-pause / next, shuffle, repeat, and a seekable progress bar. The card is tinted with the album's colour.
+A floating Spotify mini-player for macOS. While the Spotify desktop app is open, a small vinyl disc with the current album art floats on your screen and spins while music plays. Rest your cursor on it for half a second and it opens into a pill the same height:
 
-- Shows only while the Spotify desktop app is running. It talks to Spotify via AppleScript: no login and no Spotify API key. It doesn't need Screen Recording or Accessibility permission.
-- macOS asks once: **"SpotifyDisc wants to control Spotify"**. Click Allow. (If you denied it: System Settings › Privacy & Security › Automation › SpotifyDisc › Spotify.)
-- Drag the disc anywhere; it remembers the spot. It floats on every Space and over full-screen apps.
-- Menu bar disc icon: Hide/Show Widget, Reset Position, Quit. There's no Dock icon.
-- Click the album art or title to bring Spotify forward.
+- previous / play-pause / next
+- the track title, which scrolls when it's longer than 15 characters
+- a progress line along the bottom edge; hover over it to get a round knob you can drag to seek
+- a background tinted with the album art's colour
 
-## Build & run
+Drag the disc anywhere and it remembers the spot. It floats on every desktop and over full-screen apps, and has a menu bar icon to hide it or quit.
 
-Needs the Xcode Command Line Tools (`swiftc`).
+It talks to the Spotify app through AppleScript, so there's no Spotify login or API key. macOS asks once for permission to control Spotify. It doesn't need Screen Recording or Accessibility.
 
-```bash
-./build.sh run
+## Install
+
+Tell Claude Code (or another coding agent on your Mac):
+
+```
+Install the SpotifyDisc widget from https://github.com/anchitsh96/SpotifyDisc by following its INSTALL.md
 ```
 
-The app is built to `build/SpotifyDisc.app`. Copy it to `/Applications` if you want to keep it. Because it's ad-hoc signed, macOS may ask for the Spotify permission again after a rebuild.
+Or run it yourself:
 
-## Files
+```bash
+git clone https://github.com/anchitsh96/SpotifyDisc.git ~/SpotifyDisc && cd ~/SpotifyDisc && ./build.sh install
+```
 
-- `Sources/SpotifyController.swift` — AppleScript bridge, polling + Spotify's playback notification, artwork & tint colour
-- `Sources/WidgetController.swift` — floating panel, hover expand/collapse, drag, position memory
-- `Sources/Views.swift` — vinyl disc, expanded card, controls, progress bar
-- `Sources/main.swift` — app delegate + menu bar item (`--snapshot <dir>` renders PNGs for testing)
+Requires macOS 14 or newer and the Xcode Command Line Tools (`xcode-select --install`). See [INSTALL.md](INSTALL.md) for permissions, updating and uninstalling.
+
+## Development
+
+```bash
+./build.sh run      # build to build/ and launch
+./build.sh install  # build, copy to ~/Applications and launch
+```
+
+- `Sources/SpotifyController.swift` — AppleScript bridge, polling + Spotify's playback notification, artwork and tint colour
+- `Sources/WidgetController.swift` — floating panel, hover-to-open delay, dragging, position memory
+- `Sources/Views.swift` — vinyl disc, expanded pill, marquee title, seek stroke
+- `Sources/main.swift` — app delegate and menu bar item (`--snapshot <dir>` renders PNGs for testing)
