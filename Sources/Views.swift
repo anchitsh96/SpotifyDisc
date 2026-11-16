@@ -235,7 +235,7 @@ struct SeekStroke: View {
     let expandsLeft: Bool
     var forceHover = false
 
-    @State private var hover = false
+    @State private var hoverX: CGFloat? // cursor x over the line, nil when not hovering
     @State private var scrub: Double? // 0…1 while dragging
 
     var body: some View {
@@ -250,12 +250,14 @@ struct SeekStroke: View {
     }
 
     private var track: some View {
-        let showKnob = hover || scrub != nil || forceHover
+        let showKnob = hoverX != nil || scrub != nil || forceHover
         return TimelineView(.animation(minimumInterval: 1.0 / 30, paused: !s.isPlaying && scrub == nil)) { tl in
             let dur = max(s.track.duration, 0)
             let frac: Double = scrub ?? (dur > 0 ? min(max(s.currentPosition(at: tl.date) / dur, 0), 1) : 0)
             GeometryReader { g in
                 let x = g.size.width * frac
+                // Knob follows the cursor while hovering; otherwise it sits on the playhead.
+                let knobX = scrub != nil ? x : (hoverX.map { min(max($0, 0), g.size.width) } ?? x)
                 let midY = g.size.height / 2
                 ZStack {
                     Capsule().fill(Color.white.opacity(0.22))
@@ -264,17 +266,22 @@ struct SeekStroke: View {
                     Capsule().fill(Color.white)
                         .frame(width: max(2, x), height: 2)
                         .position(x: max(2, x) / 2, y: midY)
-                    // The knob just appears at the playhead: no scale or slide.
+                    // Only the fade is animated; the knob tracks the cursor 1:1 with no slide.
                     Circle()
                         .fill(Color.white)
                         .frame(width: 12, height: 12)
                         .shadow(color: .black.opacity(0.35), radius: 2, y: 1)
-                        .position(x: x, y: midY)
                         .opacity(showKnob ? 1 : 0)
                         .animation(.easeOut(duration: 0.1), value: showKnob)
+                        .position(x: knobX, y: midY)
                 }
                 .contentShape(Rectangle())
-                .onHover { hover = $0 }
+                .onContinuousHover { phase in
+                    switch phase {
+                    case .active(let p): hoverX = p.x
+                    case .ended: hoverX = nil
+                    }
+                }
                 .gesture(
                     DragGesture(minimumDistance: 0)
                         .onChanged { v in scrub = min(max(v.location.x / g.size.width, 0), 1) }
