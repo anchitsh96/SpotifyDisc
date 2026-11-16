@@ -55,8 +55,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             let disc = VinylDisc(art: s.artwork, playing: false, size: WidgetController.discD)
                 .frame(width: 64, height: 64).padding(20).background(Color.gray.opacity(0.3))
             let card = WidgetView(c: w, s: s, forceExpanded: true).background(Color.gray.opacity(0.3))
-            let seek = WidgetView(c: w, s: s, forceExpanded: true, forceSeekHover: true).background(Color.gray.opacity(0.3))
-            for (name, view) in [("disc", AnyView(disc)), ("card", AnyView(card)), ("seek", AnyView(seek))] {
+            let seek = WidgetView(c: w, s: s, forceExpanded: true, forceSeekCursor: 0.85).background(Color.gray.opacity(0.3))
+            let seekBack = WidgetView(c: w, s: s, forceExpanded: true, forceSeekCursor: 0.1).background(Color.gray.opacity(0.3))
+            for (name, view) in [("disc", AnyView(disc)), ("card", AnyView(card)), ("seek", AnyView(seek)), ("seekBack", AnyView(seekBack))] {
                 let r = ImageRenderer(content: view); r.scale = 2
                 if let img = r.nsImage, let tiff = img.tiffRepresentation,
                    let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) {

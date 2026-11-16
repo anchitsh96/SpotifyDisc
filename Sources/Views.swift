@@ -9,7 +9,7 @@ struct WidgetView: View {
     @ObservedObject var c: WidgetController
     @ObservedObject var s: SpotifyController
     var forceExpanded = false   // snapshots only
-    var forceSeekHover = false  // snapshots only
+    var forceSeekCursor: CGFloat? = nil  // snapshots only: fake cursor on the line, 0…1
 
     var body: some View {
         ZStack(alignment: c.expandsLeft ? .trailing : .leading) {
@@ -47,7 +47,7 @@ struct WidgetView: View {
         .overlay(Capsule().strokeBorder(Color.white.opacity(e ? 0.14 : 0.08), lineWidth: 0.5))
         .overlay(alignment: .bottom) {
             if e {
-                SeekStroke(s: s, expandsLeft: c.expandsLeft, forceHover: forceSeekHover)
+                SeekStroke(s: s, expandsLeft: c.expandsLeft, forceCursor: forceSeekCursor)
                     .transition(.opacity.animation(.easeOut(duration: 0.2).delay(0.1)))
             }
         }
@@ -233,7 +233,7 @@ struct MarqueeText: View {
 struct SeekStroke: View {
     @ObservedObject var s: SpotifyController
     let expandsLeft: Bool
-    var forceHover = false
+    var forceCursor: CGFloat? = nil // snapshots only
 
     @State private var hoverX: CGFloat? // cursor x over the line, nil when not hovering
     @State private var scrub: Double? // 0…1 while dragging
@@ -250,30 +250,38 @@ struct SeekStroke: View {
     }
 
     private var track: some View {
-        let showKnob = hoverX != nil || scrub != nil || forceHover
+        let showKnob = hoverX != nil || scrub != nil || forceCursor != nil
         return TimelineView(.animation(minimumInterval: 1.0 / 30, paused: !s.isPlaying && scrub == nil)) { tl in
             let dur = max(s.track.duration, 0)
             let frac: Double = scrub ?? (dur > 0 ? min(max(s.currentPosition(at: tl.date) / dur, 0), 1) : 0)
             GeometryReader { g in
-                let x = g.size.width * frac
-                // Knob follows the cursor while hovering; otherwise it sits on the playhead.
-                let knobX = scrub != nil ? x : (hoverX.map { min(max($0, 0), g.size.width) } ?? x)
+                let x = g.size.width * frac // playhead (or drag position while scrubbing)
+                // Hover preview: the stretch between the playhead and the cursor is 60% white,
+                // whichever side of the playhead the cursor is on. The knob stays on the playhead.
+                let hx = hoverX ?? forceCursor.map { $0 * g.size.width }
+                let cursor: CGFloat? = scrub == nil ? hx.map { min(max($0, 0), g.size.width) } : nil
+                let solidEnd = min(x, cursor ?? x)
+                let dimStart = solidEnd, dimEnd = max(x, cursor ?? x)
                 let midY = g.size.height / 2
                 ZStack {
                     Capsule().fill(Color.white.opacity(0.22))
                         .frame(width: g.size.width, height: 2)
                         .position(x: g.size.width / 2, y: midY)
+                    if dimEnd > dimStart {
+                        Rectangle().fill(Color.white.opacity(0.6))
+                            .frame(width: dimEnd - dimStart, height: 2)
+                            .position(x: (dimStart + dimEnd) / 2, y: midY)
+                    }
                     Capsule().fill(Color.white)
-                        .frame(width: max(2, x), height: 2)
-                        .position(x: max(2, x) / 2, y: midY)
-                    // Only the fade is animated; the knob tracks the cursor 1:1 with no slide.
+                        .frame(width: max(2, solidEnd), height: 2)
+                        .position(x: max(2, solidEnd) / 2, y: midY)
                     Circle()
                         .fill(Color.white)
                         .frame(width: 12, height: 12)
                         .shadow(color: .black.opacity(0.35), radius: 2, y: 1)
                         .opacity(showKnob ? 1 : 0)
                         .animation(.easeOut(duration: 0.1), value: showKnob)
-                        .position(x: knobX, y: midY)
+                        .position(x: x, y: midY)
                 }
                 .contentShape(Rectangle())
                 .onContinuousHover { phase in
