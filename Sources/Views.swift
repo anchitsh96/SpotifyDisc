@@ -38,6 +38,9 @@ struct WidgetView: View {
             VinylDisc(art: s.artwork, playing: active, size: d)
                 .frame(width: d, height: d)
                 .opacity(!e && !active ? 0.72 : 1)
+                .contentShape(Circle())
+                .onTapGesture(count: 2) { s.openSpotify() }
+                .help("Double-click to open Spotify")
         }
         .frame(width: e ? w : d, height: d, alignment: align)
         .clipShape(Capsule())
@@ -156,7 +159,8 @@ struct CardContent: View {
 
     private var titleText: String {
         if s.permissionDenied { return "Allow SpotifyDisc to control Spotify" }
-        return s.hasTrack ? s.track.title : "Nothing playing"
+        guard s.hasTrack else { return "Nothing playing" }
+        return s.track.artist.isEmpty ? s.track.title : "\(s.track.title) • \(s.track.artist)"
     }
 
     private var controls: some View {
@@ -247,26 +251,30 @@ struct SeekStroke: View {
 
     private var track: some View {
         let showKnob = hover || scrub != nil || forceHover
-        return TimelineView(.periodic(from: .now, by: 0.25)) { tl in
+        return TimelineView(.animation(minimumInterval: 1.0 / 30, paused: !s.isPlaying && scrub == nil)) { tl in
             let dur = max(s.track.duration, 0)
             let frac: Double = scrub ?? (dur > 0 ? min(max(s.currentPosition(at: tl.date) / dur, 0), 1) : 0)
             GeometryReader { g in
                 let x = g.size.width * frac
-                ZStack(alignment: .leading) {
-                    Capsule().fill(Color.white.opacity(0.22)).frame(height: showKnob ? 3 : 2)
-                    Capsule().fill(Color.white).frame(width: max(2, x), height: showKnob ? 3 : 2)
+                let midY = g.size.height / 2
+                ZStack {
+                    Capsule().fill(Color.white.opacity(0.22))
+                        .frame(width: g.size.width, height: 2)
+                        .position(x: g.size.width / 2, y: midY)
+                    Capsule().fill(Color.white)
+                        .frame(width: max(2, x), height: 2)
+                        .position(x: max(2, x) / 2, y: midY)
+                    // The knob just appears at the playhead: no scale or slide.
                     Circle()
                         .fill(Color.white)
                         .frame(width: 12, height: 12)
                         .shadow(color: .black.opacity(0.35), radius: 2, y: 1)
-                        .scaleEffect(scrub != nil ? 1.15 : 1)
-                        .offset(x: x - 6)
+                        .position(x: x, y: midY)
                         .opacity(showKnob ? 1 : 0)
-                        .scaleEffect(showKnob ? 1 : 0.4)
+                        .animation(.easeOut(duration: 0.1), value: showKnob)
                 }
-                .frame(height: g.size.height)
                 .contentShape(Rectangle())
-                .onHover { h in withAnimation(.easeOut(duration: 0.15)) { hover = h } }
+                .onHover { hover = $0 }
                 .gesture(
                     DragGesture(minimumDistance: 0)
                         .onChanged { v in scrub = min(max(v.location.x / g.size.width, 0), 1) }
@@ -279,7 +287,6 @@ struct SeekStroke: View {
             }
         }
         .opacity(s.hasTrack ? 1 : 0.4)
-        .animation(.easeOut(duration: 0.15), value: showKnob)
     }
 }
 

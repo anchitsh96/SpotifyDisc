@@ -3,7 +3,7 @@
 A floating Spotify mini-player for macOS. While the Spotify desktop app is open, a small vinyl disc with the current album art floats on your screen and spins while music plays. Rest your cursor on it for half a second and it opens into a pill the same height:
 
 - previous / play-pause / next
-- the track title, which scrolls when it's longer than 15 characters
+- "title • artist", which scrolls when it's longer than 15 characters
 - a progress line along the bottom edge; hover over it to get a round knob you can drag to seek
 - a background tinted with the album art's colour
 

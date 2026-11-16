@@ -45,7 +45,7 @@ You won't be asked for Screen Recording, Accessibility or a Spotify login. None 
 - **Open the controls:** rest your cursor on the disc for half a second.
 - **Move it:** grab the disc and drag it anywhere. It remembers the spot.
 - **Seek:** hover over the line along the bottom edge of the open pill, then drag the round knob (or click the line).
-- **Bring Spotify forward:** click the track title.
+- **Bring Spotify forward:** double-click the disc, or click the track title.
 - **Hide, reset or quit:** use the disc icon in the menu bar. There's no Dock icon.
 - **Start at login (optional):** System Settings › General › Login Items › **+** › choose `~/Applications/SpotifyDisc.app`.
 
