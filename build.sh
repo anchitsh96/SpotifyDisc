@@ -19,6 +19,7 @@ swiftc -O -swift-version 5 -target "$(uname -m)-apple-macos14" \
   Sources/*.swift -o "$APP/Contents/MacOS/SpotifyDisc"
 
 cp Info.plist "$APP/Contents/Info.plist"
+cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns" # regenerate with: swift tools/make_icon.swift
 codesign --force --sign - "$APP" >/dev/null
 echo "Built $APP"
 

@@ -38,3 +38,4 @@ Requires macOS 14 or newer and the Xcode Command Line Tools (`xcode-select --ins
 - `Sources/WidgetController.swift` — floating panel, hover-to-open delay, dragging, position memory
 - `Sources/Views.swift` — vinyl disc, expanded pill, marquee title, seek stroke
 - `Sources/main.swift` — app delegate and menu bar item (`--snapshot <dir>` renders PNGs for testing)
+- `tools/make_icon.swift` — draws the app icon into `Resources/AppIcon.icns` (run `swift tools/make_icon.swift`)
