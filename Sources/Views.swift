@@ -145,7 +145,7 @@ struct CardContent: View {
         HStack(spacing: 10) {
             if !c.expandsLeft { Color.clear.frame(width: WidgetController.discD - 4) }
             controls
-            MarqueeText(text: titleText, width: 128, font: .systemFont(ofSize: 13, weight: .medium))
+            MarqueeText(text: titleText, width: 128, font: .systemFont(ofSize: 13, weight: .regular))
                 .frame(maxWidth: .infinity)
                 .contentShape(Rectangle())
                 .onTapGesture { s.openSpotify() }
